@@ -27,6 +27,7 @@ snsへ自動投稿も視野に入れています。
 
 ## 料金についての注意
 
+毎週の自動実行では、リサーチ・下書き・ヘッダー画像の3つでポイントを使います。
 Poe のポイントを使います。目安として、リサーチ1回で約20万トークンかかります。
 
 ## セットアップ（Codex / リサーチ部分）
@@ -145,3 +146,7 @@ launchctl bootout gui/$(id -u)/com.example.autopost.research
 ```bash
 ./scripts/research.sh
 ```
+
+##Obsidianで確認
+Obsidianを使って記事を管理すると、もっと簡単に確認ができます。
+https://obsidian.md/
