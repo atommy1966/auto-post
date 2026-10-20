@@ -41,7 +41,9 @@ sips --resampleWidth 1280 "$OUT" >/dev/null
 sips --cropToHeightWidth 670 1280 "$OUT" >/dev/null
 
 # 下書きのフロントマターに header: を追加（まだ無いときだけ）
-grep -q '^header:' "$D" || awk -v h="header: \"[[${NAME}.png]]\"" \
-  'NR>1 && /^---$/ && !done {print h; done=1} {print}' "$D" > "$D.tmp" && mv "$D.tmp" "$D"
+if [ "$(head -1 "$D")" = "---" ] && ! grep -q '^header:' "$D"; then
+  awk -v h="header: \"[[${NAME}.png]]\"" \
+    'NR>1 && /^---$/ && !done {print h; done=1} {print}' "$D" > "$D.tmp" && mv "$D.tmp" "$D"
+fi
 
 echo "✅ $OUT"

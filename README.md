@@ -10,6 +10,7 @@ snsへ自動投稿も視野に入れています。
 - Poe の API キー（https://poe.com/api/keys で発行・確認できます）
 - Node.js（Codex のインストールに使います）
 - Codex CLI と Claude Code（インストール方法は下に書いてあります）
+- jq（`header.sh` で使います。`brew install jq` で入れられます）
 
 ## フォルダ構成
 
@@ -98,9 +99,27 @@ claude --version
 
 ※ ふだん使っている Claude Code の設定やログイン状態は変わりません（スクリプトの中だけで設定しています）。
 
-## 自動実行の設定（launchd）
+## ヘッダー画像について
 
-毎週月曜の 7:00 に `scripts/research.sh` が動きます。リサーチが成功すると、続けて `scripts/draft.sh` が自動で動き、下書きが作られます（リサーチに失敗したときは、下書きは作られません）。
+下書きが作られたあと、`scripts/draft.sh` から自動で `scripts/header.sh` が動きます。結果は `logs/` のログで確認できます。
+
+作り直したいときや、別の下書きに使いたいときは手動でも動かせます。
+
+```bash
+./scripts/header.sh                  # 一番新しい下書きの画像を作る
+./scripts/header.sh drafts/xxx.md    # 下書きを指定して作る
+```
+
+- 下書きのフロントマターにある `image_prompt:` をもとに、Poe の `GPT-Image-1.5` で画像を作ります
+- 画像は `drafts/images/下書き名.png`（1280×670）に保存されます
+- 下書きのフロントマターに `header: "[[下書き名.png]]"`（Obsidian のリンク形式）が追加されます。すでにある場合は追加しません
+- 画像を1枚作るたびに Poe のポイントを使います（毎週の自動実行でも使います）
+- モデルを変えたいときは、`scripts/header.sh` の上の方にある `MODEL` を書き換えてください
+- 画像の作成に失敗しても、下書きはそのまま残ります。`logs/` のログにある `header exit code` で結果を確認でき、失敗していたら `./scripts/header.sh drafts/xxx.md` で作り直せます
+- `image_prompt:` は、`CLAUDE.md` の指示で Claude Code が下書きに自動で付けます。自分で書いた下書きに使うときは、フロントマターに `image_prompt: "英語の画像の説明"` を1行で書いてください
+
+## 自動実行の設定（launchd）
+毎週月曜の 7:00 に `scripts/research.sh` が動きます。リサーチが成功すると、続けて `scripts/draft.sh` が自動で動いて下書きが作られ、そのあと `scripts/header.sh` でヘッダー画像も作られます（リサーチに失敗したときは、下書きも画像も作られません）。
 
 ※ Mac がスリープしている場合は、スリープが解除されたときに動きます。電源が切れている場合は、その週は動きません。
 
