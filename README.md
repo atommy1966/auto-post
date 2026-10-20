@@ -147,6 +147,7 @@ launchctl bootout gui/$(id -u)/com.example.autopost.research
 ./scripts/research.sh
 ```
 
-##Obsidianで確認
+## Obsidianで確認
 Obsidianを使って記事を管理すると、もっと簡単に確認ができます。
+
 https://obsidian.md/
