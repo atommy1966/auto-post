@@ -1,0 +1,15 @@
+.DS_Store
+logs/
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.env
+*.key
+.claude/settings.local.json
+.obsidian/plugins/*/data.json
+.env.*
+research/seen_urls.txt
+
+# 自動で作られる個人データ
+drafts/
+research/*
+!research/RESEARCH.md

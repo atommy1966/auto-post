@@ -1,0 +1,11 @@
+# auto-post 用の Codex 設定
+# ~/.codex/config.toml の「末尾」に追記してください。
+# API キーはここには書きません（macOS キーチェーンから読み込みます）。
+
+[model_providers.poe]
+name = "poe"
+base_url = "https://api.poe.com/v1"
+wire_api = "responses"
+env_key = "POE_API_KEY"
+requires_openai_auth = false
+supports_websockets = false
