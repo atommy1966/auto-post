@@ -232,3 +232,10 @@ bash scripts/buffer-post.sh sns/x/2026-10-20_テーマ名.md
 Obsidianを使って記事を管理すると、もっと簡単に確認ができます。
 
 https://obsidian.md/
+
+## 関連記事
+
+このリポジトリの仕組みについて、noteで詳しく解説しています。
+
+- [Mac で「ネタ集め→下書き→ヘッダー画像」を毎週自動で作る仕組みを作った（Codex × Claude Code × Poe）](https://note.com/aimusicjapan/n/n332ac2ff7260)
+- [note記事を書いたら、X・ThreadsへのSNS投稿もまとめて仕上げる仕組みを作った](https://note.com/aimusicjapan/n/n762d3e4e43d2)
