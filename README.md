@@ -1,8 +1,7 @@
 # auto-post
 
 Mac で「ネタ集め（Codex）→ 下書き作成（Claude Code）」を毎週月曜に自動で動かすスクリプト集です。
-API はどちらも Poe を経由して使います。現時点ではwebから記事を収集して下書きするだけです。将来的には、
-snsへ自動投稿も視野に入れています。
+API はどちらも Poe を経由して使います。上記の下書きをNoteへ手動投稿することで、記事一覧情報を読み取り、snsへの自動投稿するためのスクリプト、スキルを追加しています。この時、Bufferを利用します。
 
 ## 必要なもの
 
@@ -11,16 +10,18 @@ snsへ自動投稿も視野に入れています。
 - Node.js（Codex のインストールに使います）
 - Codex CLI と Claude Code（インストール方法は下に書いてあります）
 - jq（`header.sh` で使います。`brew install jq` で入れられます）
+- Buffer アカウント（SNS投稿を使う場合。無料プランで利用できます https://buffer.com）
 
 ## フォルダ構成
 
 | フォルダ・ファイル | 中身 |
 |---|---|
-| `scripts/` | `research.sh`（ネタ集め）、`draft.sh`（下書き作成）、`header.sh`（ヘッダー画像生成） |
+| `scripts/` | `research.sh`（ネタ集め）、`draft.sh`（下書き作成）、`header.sh`（ヘッダー画像生成）、`buffer-post.sh`（Buffer単体投稿）、`buffer-post-all.sh`（X・Threads同時投稿） |
 | `research/` | `RESEARCH.md`（リサーチの手順書）。実行するたびの結果もここに保存されます |
-| `sns/` | 将来の自動投稿用（今は空） |
+| `sns/x/` | X（旧Twitter）用の投稿文下書き |
+| `sns/threads/` | Threads用の投稿文下書き |
 | `launchd/` | 毎週月曜に自動で動かすための設定 |
-| `.claude/commands/` | Claude Code 用のコマンド（`/draft`、`/edit`） |
+| `.claude/commands/` | Claude Code 用のコマンド（`/draft`、`/edit`、`/sns-post`、`/threads-post`） |
 | `AGENTS.md` / `CLAUDE.md` / `WRITING.md` | AI への指示書 |
 | `config.example.toml` | Codex に追加する Poe の設定の見本 |
 
@@ -145,6 +146,86 @@ launchctl bootout gui/$(id -u)/com.example.autopost.research
 
 ```bash
 ./scripts/research.sh
+```
+
+## SNS投稿（Buffer連携）
+
+note記事を公開した後、X・Threadsへの投稿文を生成してBufferのキューに追加できます。
+
+### 1. Buffer アカウントを作成してチャンネルを接続する
+
+Buffer（https://buffer.com）に登録し、X・Threadsのアカウントをチャンネルとして接続します。無料プランで3チャンネルまで利用できます。
+
+### 2. Buffer APIトークンをキーチェーンに保存する
+
+Buffer Publish の設定画面（Settings > API）からAPIトークンを取得し、キーチェーンに保存します。
+
+```bash
+security add-generic-password -s BUFFER_TOKEN -a buffer -w "YOUR_TOKEN"
+```
+
+### 3. チャンネルIDを確認する
+
+organizationId を取得してからチャンネル一覧を取得します。
+
+```bash
+# organizationId を取得
+curl -s -X POST "https://api.buffer.com/graphql" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ account { organizations { id name } } }"}'
+
+# チャンネル一覧を取得（YOUR_ORG_ID を上で取得した id に置き換える）
+curl -s -X POST "https://api.buffer.com/graphql" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ channels(input: { organizationId: \"YOUR_ORG_ID\" }) { id name service } }"}'
+```
+
+### 4. スクリプトにチャンネルIDを設定する
+
+`scripts/buffer-post.sh` の上の方にある変数を書き換えます。
+
+```bash
+# ===== ここだけ変更 =====
+BUFFER_CHANNEL_X="取得したXのチャンネルID"
+BUFFER_CHANNEL_THREADS="取得したThreadsのチャンネルID"
+# ========================
+```
+
+### 5. SNS投稿文を生成する
+
+Claude Code のスキルで投稿文を生成します。note のRSSフィードから公開済み記事のURLを自動で取得します。
+
+`sns-post.md` と `threads-post.md` の中にある `YOUR_NOTE_USERNAME` を自分のnoteのユーザー名に書き換えてください。
+
+```bash
+/sns-post テーマ名      # X用投稿文を sns/x/ に生成（パターンA・B の2案）
+/threads-post テーマ名  # Threads用投稿文を sns/threads/ に生成（パターンA・B の2案）
+```
+
+### 6. A/Bを選んでBufferキューに追加する
+
+`/choose-post` を実行すると、未選択の記事を1件ずつ表示します。X用とThreads用それぞれにA/Bを選ぶと、選択結果がファイルに記録されてそのままBufferのキューに追加されます。
+
+```bash
+/choose-post
+```
+
+選択結果はフロントマターの `chosen_x:` と `chosen_threads:` に記録されます。XとThreadsで異なるパターンを選ぶこともできます。
+
+```yaml
+note_url: https://note.com/YOUR_NOTE_USERNAME/n/xxx
+chosen_x: B
+chosen_threads: A
+```
+
+**選択せずに投稿しようとするとエラーになります。** 必ず `/choose-post` を経由してください。
+
+```bash
+# 手動で個別に投稿する場合（chosen_x: / chosen_threads: が設定済みであること）
+bash scripts/buffer-post-all.sh 2026-10-20_テーマ名
+bash scripts/buffer-post.sh sns/x/2026-10-20_テーマ名.md
 ```
 
 ## Obsidianで確認
