@@ -19,8 +19,8 @@ T_FILE="sns/threads/${THEME}.md"
 [ -f "$X_FILE" ]  || { echo "❌ X用ファイルが見つかりません: $X_FILE"; exit 1; }
 [ -f "$T_FILE" ] || { echo "❌ Threads用ファイルが見つかりません: $T_FILE"; exit 1; }
 
-# chosen: の確認（X側で代表して確認）
-PATTERN="$(awk '/^chosen:/{print $2; exit}' "$X_FILE")"
+# chosen_x: の確認（X側で代表して確認）
+PATTERN="$(awk '/^chosen_x:/{print $2; exit}' "$X_FILE")"
 [ -n "$PATTERN" ] || { echo "❌ 未選択です。/choose-post で A/B を選んでから実行してください: $THEME"; exit 1; }
 
 echo "=== X（パターン${PATTERN}）==="
