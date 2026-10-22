@@ -16,7 +16,7 @@ API はどちらも Poe を経由して使います。上記の下書きをNote�
 
 | フォルダ・ファイル | 中身 |
 |---|---|
-| `scripts/` | `research.sh`（ネタ集め）、`draft.sh`（下書き作成）、`header.sh`（ヘッダー画像生成）、`buffer-post.sh`（Buffer単体投稿）、`buffer-post-all.sh`（X・Threads同時投稿） |
+| `scripts/` | `research.sh`（ネタ集め）、`draft.sh`（下書き作成）、`header.sh`（ヘッダー画像生成）、`note-post.sh`（note投稿）、`note-finalize.js`（カバー画像・インライン画像設定）、`buffer-post.sh`（Buffer単体投稿）、`buffer-post-all.sh`（X・Threads同時投稿） |
 | `research/` | `RESEARCH.md`（リサーチの手順書）。実行するたびの結果もここに保存されます |
 | `sns/x/` | X（旧Twitter）用の投稿文下書き |
 | `sns/threads/` | Threads用の投稿文下書き |
@@ -148,6 +148,59 @@ launchctl bootout gui/$(id -u)/com.example.autopost.research
 ./scripts/research.sh
 ```
 
+## note自動投稿
+
+`drafts/` にある下書きMarkdownを、noteのエディタに自動で投稿できます。本文の入力・カバー画像の設定・インライン画像の挿入まで自動で行います。
+
+ブラウザ操作に [note-scripts](https://github.com/naginata63/note-scripts)（Playwright）を使います。
+
+### 1. note-scripts をインストールする
+
+```bash
+git clone https://github.com/naginata63/note-scripts.git ~/note-scripts
+cd ~/note-scripts
+npm install
+npx playwright install chromium
+```
+
+### 2. noteのログイン情報をキーチェーンに保存する
+
+```bash
+security add-generic-password -s NOTE_EMAIL -a "$USER" -w "your@email.com"
+security add-generic-password -s NOTE_PASSWORD -a "$USER" -w "yourpassword"
+```
+
+### 3. 投稿する
+
+```bash
+bash scripts/note-post.sh drafts/YYYY-MM-DD_テーマ名.md
+```
+
+実行すると：
+1. 下書きのフロントマター・Obsidian記法を除去して本文を整形
+2. noteに新規下書きを作成
+3. カバー画像（`drafts/images/下書き名.png`）を自動設定
+4. 本文中のインライン画像プレースホルダーを処理（後述）
+5. 完了後、ブラウザでエディタを開く
+
+### インライン画像の自動挿入
+
+下書きに `（スクリーンショット：filename）` と書いておくと、`drafts/images/filename.png` を自動でその位置に挿入します。
+
+```markdown
+この画面がダッシュボードです。
+
+（スクリーンショット：dashboard-main）
+
+上の画像のように…
+```
+
+### 注意事項
+
+- Playwrightはheadedモード（ブラウザ画面表示）が必要です。スクリーンロック中は動作しません
+- Cron等の自動実行には対応していません。手動で実行してください
+- 投稿後、カバー画像のリロードが必要な場合があります（ブラウザでエディタを開き直すと反映されます）
+
 ## SNS投稿（Buffer連携）
 
 note記事を公開した後、X・Threadsへの投稿文を生成してBufferのキューに追加できます。
@@ -239,3 +292,4 @@ https://obsidian.md/
 
 - [Mac で「ネタ集め→下書き→ヘッダー画像」を毎週自動で作る仕組みを作った（Codex × Claude Code × Poe）](https://note.com/aimusicjapan/n/n332ac2ff7260)
 - [note記事を書いたら、X・ThreadsへのSNS投稿もまとめて仕上げる仕組みを作った](https://note.com/aimusicjapan/n/n762d3e4e43d2)
+- note記事の投稿も自動化した——無料の公開スクリプトで下書きまで自動で入る（公開後に更新）
