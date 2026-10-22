@@ -292,4 +292,4 @@ https://obsidian.md/
 
 - [Mac で「ネタ集め→下書き→ヘッダー画像」を毎週自動で作る仕組みを作った（Codex × Claude Code × Poe）](https://note.com/aimusicjapan/n/n332ac2ff7260)
 - [note記事を書いたら、X・ThreadsへのSNS投稿もまとめて仕上げる仕組みを作った](https://note.com/aimusicjapan/n/n762d3e4e43d2)
-- note記事の投稿も自動化した——無料の公開スクリプトで下書きまで自動で入る（公開後に更新）
+- [note記事の投稿も自動化した——無料の公開スクリプトで下書きまで自動で入る](https://note.com/aimusicjapan/n/nfd4bbad50654)
